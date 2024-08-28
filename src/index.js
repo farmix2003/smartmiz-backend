@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const i18next = require('../middleware/i18n');
 const middleware = require('i18next-http-middleware');
+const cors = require('cors')
+const cookieParser = require('cookie-parser');
 const connectToDB = require('../config/db')
 require('dotenv').config();
 
@@ -15,6 +17,11 @@ const app = express();
 const secretKey = process.env.SECRET_KEY;
 
 app.use(express.json());
+app.use(cookieParser())
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}))
 app.use(middleware.handle(i18next));
 
 (async () => {
@@ -27,11 +34,9 @@ app.use(middleware.handle(i18next));
         image: { type: mongoose.SchemaTypes.String, required: true },
     })
 
-
     const hashedPassword = bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
     console.log(`Hashed password: ${hashedPassword}`);
 
-    // Mock user data
     const users = [
         { id: 1, username: 'admin', password: hashedPassword, role: 'ADMIN' }
     ];
@@ -109,7 +114,6 @@ app.use(middleware.handle(i18next));
         }
     })
 })
-// Start the server only after MongoDB is connected
 app.listen(5000, () => {
     console.log('Server running on port 5000');
 });
