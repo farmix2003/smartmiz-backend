@@ -30,6 +30,7 @@ const priceSchema = new mongoose.Schema({
     coursePrice: { type: Number, required: true },
     courseType: { type: String, required: false },
     image: { type: String, required: true },
+    courseTime: { type: String, required: true },
 });
 
 // Create the model
