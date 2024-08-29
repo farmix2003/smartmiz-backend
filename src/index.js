@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const { authorizeAdmin, authenticateJWT } = require('../config/jwt');
+const { authenticateJWT } = require('../config/jwt');
 const connectToDB = require('../config/db');
 
 connectToDB();
@@ -24,7 +24,6 @@ app.use(cors({
 }));
 app.use(middleware.handle(i18next));
 
-// Define the schema
 const priceSchema = new mongoose.Schema({
     courseName: { type: String, required: true },
     coursePrice: { type: Number, required: true },
@@ -79,10 +78,10 @@ const Price = mongoose.model('Price', priceSchema);
         }
     });
 
-    app.post('/prices', authorizeAdmin, async (req, res) => {
+    app.post('/prices', async (req, res) => {
         try {
-            const { courseName, coursePrice, courseType, image } = req.body;
-            const newPrice = new Price({ courseName, coursePrice, courseType, image });
+            const { courseName, coursePrice, courseType, image, courseTime } = req.body;
+            const newPrice = new Price({ courseName, coursePrice, courseType, image, courseTime });
             const savedPrice = await newPrice.save();
             res.json(savedPrice);
         } catch (error) {
@@ -91,7 +90,7 @@ const Price = mongoose.model('Price', priceSchema);
         }
     });
 
-    app.get('/prices', authenticateJWT, async (req, res) => {
+    app.get('/prices', async (req, res) => {
         try {
             const prices = await Price.find();
             res.json(prices);
@@ -101,7 +100,7 @@ const Price = mongoose.model('Price', priceSchema);
         }
     });
 
-    app.put('/prices/:id', authorizeAdmin, async (req, res) => {
+    app.put('/prices/:id', async (req, res) => {
         try {
             const { id } = req.params;
             const updatedPrice = await Price.findByIdAndUpdate(id, req.body, { new: true });
@@ -115,7 +114,7 @@ const Price = mongoose.model('Price', priceSchema);
         }
     });
 
-    app.delete('/prices/:id', authorizeAdmin, async (req, res) => {
+    app.delete('/prices/:id', async (req, res) => {
         try {
             const { id } = req.params;
             const deletedPrice = await Price.findByIdAndDelete(id);
@@ -129,7 +128,6 @@ const Price = mongoose.model('Price', priceSchema);
         }
     });
 
-    // Start the server after the IIFE
     app.listen(5000, () => {
         console.log('Server running on port 5000');
     });
