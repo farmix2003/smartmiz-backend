@@ -19,7 +19,8 @@ const secretKey = process.env.SECRET_KEY;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: 'http://localhost:3000',
+    // origin: 'http://localhost:3000',
+    origin: "https://admin-panel-theta-drab.vercel.app",
     credentials: true
 }));
 app.use(middleware.handle(i18next));
