@@ -6,6 +6,7 @@ const middleware = require('i18next-http-middleware');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const { authenticateJWT } = require('../config/jwt');
@@ -17,6 +18,7 @@ const app = express();
 const secretKey = process.env.SECRET_KEY;
 
 app.use(express.json());
+app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -30,6 +32,7 @@ const priceSchema = new mongoose.Schema({
     courseType: { type: String, required: false },
     image: { type: String, required: true },
     courseTime: { type: String, required: true },
+    desc: { type: String, required: true },
 });
 
 // Create the model
@@ -80,8 +83,8 @@ const Price = mongoose.model('Price', priceSchema);
 
     app.post('/prices', async (req, res) => {
         try {
-            const { courseName, coursePrice, courseType, image, courseTime } = req.body;
-            const newPrice = new Price({ courseName, coursePrice, courseType, image, courseTime });
+            const { courseName, coursePrice, courseType, image, courseTime, desc } = req.body;
+            const newPrice = new Price({ courseName, coursePrice, courseType, image, courseTime, desc });
             const savedPrice = await newPrice.save();
             res.json(savedPrice);
         } catch (error) {
@@ -101,15 +104,30 @@ const Price = mongoose.model('Price', priceSchema);
     });
 
     app.put('/prices/:id', async (req, res) => {
+        console.log(req.body);
+
         try {
             const { id } = req.params;
-            const updatedPrice = await Price.findByIdAndUpdate(id, req.body, { new: true });
+            const { courseName, coursePrice, courseType, courseTime, image, desc } = req.body;
+
+            const updatedData = {
+                courseName,
+                coursePrice,
+                courseType,
+                courseTime,
+                image,
+                desc
+            };
+
+            const updatedPrice = await Price.findByIdAndUpdate(id, updatedData, { new: true });
+
             if (!updatedPrice) {
-                return res.status(404).send('Price not found');
+                return res.status(404).send('Course not found');
             }
+
             res.json(updatedPrice);
         } catch (error) {
-            console.error('Price update error:', error);
+            console.error('Error updating course:', error);
             res.status(500).send('Server error');
         }
     });
@@ -124,6 +142,20 @@ const Price = mongoose.model('Price', priceSchema);
             res.json(deletedPrice);
         } catch (error) {
             console.error('Price deletion error:', error);
+            res.status(500).send('Server error');
+        }
+    });
+
+    app.get('/prices/:id', async (req, res) => {
+        try {
+            const { id } = req.params;
+            const price = await Price.findById(id);
+            if (!price) {
+                return res.status(404).send('Price not found');
+            }
+            res.json(price);
+        } catch (error) {
+            console.error('Price fetching error:', error);
             res.status(500).send('Server error');
         }
     });
